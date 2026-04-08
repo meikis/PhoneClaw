@@ -27,6 +27,11 @@ A local AI Agent for iPhone. Offline. Private. Native.
 
 PhoneClaw is a local AI Agent that runs entirely on your iPhone. No internet connection. No data uploads. No cloud dependency.
 
+## 2026-04-08 Update
+
+- Model downloads now include a ModelScope mirror, so users in mainland China can download Gemma 4 without a VPN
+- Major rework of memory management: the inference budget is now dynamically derived from actual available memory, with the obsolete prompt-length subtraction removed, so long prompts and long answers are no longer falsely truncated; multi-turn tool calls also keep their context more reliably
+
 ## 2026-04-07 Update
 
 - Added voice input, with on-device audio analysis and recognition
@@ -226,7 +231,7 @@ By default, the project no longer bundles anything from `Models/` into the app.
 1. Keep `Models/gemma-4-e2b-it-4bit`, remove `Models/gemma-4-e4b-it-4bit`
 2. In Xcode's Project Navigator, delete the unused model folder reference and choose Remove Reference
 3. In PhoneClaw > Build Phases > Copy Bundle Resources, manually add back the model you want to ship and confirm only that one remains
-4. Edit `availableModels` in `LLM/MLXLocalLLMService.swift` to only include the models actually shipped (otherwise the settings page will show options that don't exist)
+4. Edit `availableModels` in `LLM/MLX/MLXLocalLLMService.swift` to only include the models actually shipped (otherwise the settings page will show options that don't exist)
 
 ### Option C — Both E2B and E4B
 
@@ -275,7 +280,7 @@ examples:
 Tell the model when to call tools, how to structure arguments, and when to answer directly.
 ```
 
-If this skill needs to call native iOS APIs, register the tool in `Skills/ToolRegistry.swift`.
+If this skill needs to call native iOS APIs, register the tool in `Tools/ToolRegistry.swift` (and add a handler under `Tools/Handlers/`). The framework validates `allowed-tools` against the registry at startup, so any typo will surface immediately in the console.
 
 
 ## FAQ
@@ -357,6 +362,8 @@ If ordered by "fastest path to meaningful experience improvement":
 - [Hugging Face download guide](https://huggingface.co/docs/huggingface_hub/en/guides/download)
 - [Gemma 4 E2B MLX model](https://huggingface.co/mlx-community/gemma-4-e2b-it-4bit)
 - [Gemma 4 E4B MLX model](https://huggingface.co/mlx-community/gemma-4-e4b-it-4bit)
+- [Gemma 4 E2B (ModelScope mirror)](https://modelscope.cn/models/mlx-community/gemma-4-e2b-it-4bit)
+- [Gemma 4 E4B (ModelScope mirror)](https://modelscope.cn/models/mlx-community/gemma-4-e4b-it-4bit)
 
 ## License
 

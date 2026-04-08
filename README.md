@@ -27,6 +27,11 @@
 
 PhoneClaw 是一个运行在 iPhone 上的本地 AI Agent。它使用 Gemma 4 在设备端完成推理，不依赖云端，不上传聊天内容。
 
+## 2026-04-08 更新
+
+- 模型下载新增 ModelScope 国内镜像，国内用户无需 VPN 即可下载 Gemma 4
+- 大幅重构内存管理：推理预算改为按实际可用内存动态计算，去掉了过时的 prompt 长度扣减逻辑，长 prompt 和长回答不再被错误截断；多轮工具调用的上下文衔接也更稳定
+
 ## 2026-04-07 更新
 
 - 新增语音功能，支持录音发送，并可对语音内容进行分析和识别
@@ -125,7 +130,7 @@ hf download mlx-community/gemma-4-e2b-it-4bit --local-dir ./Models/gemma-4-e2b-i
 ```
 
 2. 在 Xcode `Build Phases > Copy Bundle Resources` 里手动把模型目录加进去
-3. 修改 `LLM/MLXLocalLLMService.swift` 里的 `availableModels`，只保留要分发的模型
+3. 修改 `LLM/MLX/MLXLocalLLMService.swift` 里的 `availableModels`，只保留要分发的模型
 
 > E2B 约 3.58 GB，E4B 约 5.22 GB。`Models/` 已在 `.gitignore` 中忽略，不会提交到仓库。
 
@@ -172,7 +177,7 @@ open PhoneClaw.xcworkspace
 
 ## 自定义 Skill
 
-新增一个 Skill 的最小成本方式，是在应用目录里增加一个 `SKILL.md`：
+新增一个 Skill 的最小成本方式，是在 `Skills/Library/<skill-id>/` 下增加一个 `SKILL.md`，或者运行时写到应用沙盒：
 
 ```
 Application Support/PhoneClaw/skills/<skill-id>/SKILL.md
@@ -186,12 +191,13 @@ description: 这个 Skill 的作用
 version: "1.0.0"
 icon: star
 disabled: false
+type: device          # device = 调系统 API; content = 纯 prompt 类（翻译/总结/改写）
 
 triggers:
   - 关键词1
 
 allowed-tools:
-  - my-tool-name
+  - my-tool-name      # device 类必填; content 类可留空数组 []
 
 examples:
   - query: "用户会怎么说"
@@ -203,7 +209,12 @@ examples:
 告诉模型何时调用工具、如何组织参数、何时直接回答。
 ```
 
-如果这个 Skill 需要真正调用系统能力，再去 `Skills/ToolRegistry.swift` 注册对应工具。
+**`type` 字段决定 Skill 的执行模式**：
+
+- **`device`**：模型先 emit `<tool_call>` 调用真实 iOS API；典型例子有 `calendar` / `clipboard` / `contacts`
+- **`content`**：模型直接根据 SKILL.md 指令处理用户输入并输出最终答案，不走任何 tool；典型例子是 `translate`
+
+如果这个 Skill 需要真正调用系统能力，再去 `Tools/ToolRegistry.swift` + `Tools/Handlers/<Name>.swift` 注册对应工具。框架会在启动时自动校验 `allowed-tools` 与 `ToolRegistry` 是否同步，写错的 tool 名会立刻在控制台暴露。
 
 
 ## 常见问题
@@ -288,6 +299,8 @@ PhoneClaw 不会假设自己能像桌面系统那样任意操控所有 App，而
 - [Hugging Face 下载文档](https://huggingface.co/docs/huggingface_hub/en/guides/download)
 - [Gemma 4 E2B MLX 模型](https://huggingface.co/mlx-community/gemma-4-e2b-it-4bit)
 - [Gemma 4 E4B MLX 模型](https://huggingface.co/mlx-community/gemma-4-e4b-it-4bit)
+- [Gemma 4 E2B (ModelScope 国内镜像)](https://modelscope.cn/models/mlx-community/gemma-4-e2b-it-4bit)
+- [Gemma 4 E4B (ModelScope 国内镜像)](https://modelscope.cn/models/mlx-community/gemma-4-e4b-it-4bit)
 
 ## License
 
