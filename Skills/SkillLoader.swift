@@ -46,6 +46,10 @@ struct SkillMetadata {
     let triggers: [String]
     let allowedTools: [String]
     let examples: [SkillExample]
+    /// 欢迎页快捷 chip 的文字 = 所见即所发。
+    /// 来源 SKILL.md 的 `chip_prompt` 字段 (可选)。
+    /// 不声明的 skill 不会出现在 chip 列表里。
+    let chipPrompt: String?
 
     var displayName: String {
         if Locale.preferredLanguages.contains(where: { $0.lowercased().hasPrefix("zh") }),
@@ -117,7 +121,8 @@ enum SkillLoader {
             type: type,
             triggers: frontmatter["triggers"] as? [String] ?? [],
             allowedTools: frontmatter["allowed-tools"] as? [String] ?? [],
-            examples: parseExamples(frontmatter["examples"])
+            examples: parseExamples(frontmatter["examples"]),
+            chipPrompt: (frontmatter["chip_prompt"] as? String)?.trimmingCharacters(in: .whitespaces)
         )
 
         return SkillDefinition(

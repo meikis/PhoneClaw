@@ -290,24 +290,31 @@ struct ContentView: View {
 
     // MARK: - Skill 快捷标签
     //
-    // Chip 完全由 SKILL.md 数据驱动:
-    //   - 显示文字 = skill.displayName (来自 SKILL.md 的 name-zh / name)
-    //   - 点击发送 = skill.samplePrompt (来自 SKILL.md examples[0].query)
-    //   - 图标 = skill.icon (来自 SKILL.md icon 字段)
+    // Chip 完全由 SKILL.md 数据驱动, 所见即所发:
+    //   - 显示文字 = skill.chipPrompt (来自 SKILL.md `chip_prompt` 字段)
+    //   - 点击发送 = 同上 (chip 上看到什么就发什么, 没有脱节)
+    //   - 图标 = skill.icon (来自 SKILL.md `icon` 字段)
     //
-    // 框架不硬编任何具体 skill 名。加新 skill 只要 SKILL.md 写完, UI 自动显示。
+    // 没声明 chip_prompt 的 skill 不会出现在 chip 列表 — 这是"这个 skill
+    // 不想当快捷按钮"的自然表达, 不需要额外的隐藏名单。
+    //
+    // 框架不硬编任何具体 skill 名。加新 skill 只要在 SKILL.md 写一行
+    // `chip_prompt: "..."`, UI 自动显示, 不写就自动不显示。
 
     private var skillChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(engine.enabledSkillInfos.filter { !$0.samplePrompt.isEmpty }, id: \.name) { skill in
+                ForEach(engine.enabledSkillInfos.compactMap { skill -> (SkillInfo, String)? in
+                    guard let prompt = skill.chipPrompt, !prompt.isEmpty else { return nil }
+                    return (skill, prompt)
+                }, id: \.0.name) { skill, chipPrompt in
                     Button {
-                        inputText = skill.samplePrompt
+                        inputText = chipPrompt
                         Task { await send() }
                     } label: {
                         HStack(spacing: 5) {
                             Image(systemName: skill.icon).font(.system(size: 11))
-                            Text(skill.displayName).font(.system(size: 12, weight: .medium))
+                            Text(chipPrompt).font(.system(size: 12, weight: .medium))
                         }
                         .foregroundStyle(Theme.textSecondary)
                         .padding(.horizontal, 12)

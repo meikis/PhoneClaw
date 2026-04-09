@@ -6,6 +6,7 @@ version: "1.0.0"
 icon: bell
 disabled: false
 type: device
+chip_prompt: "帮我创建提醒事项"
 
 triggers:
   - 提醒

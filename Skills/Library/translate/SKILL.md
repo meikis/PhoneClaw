@@ -6,6 +6,7 @@ version: "1.1.0"
 icon: character.bubble
 disabled: false
 type: content
+chip_prompt: "帮我翻译一段话"
 
 triggers:
   - 翻译

@@ -6,6 +6,7 @@ version: "1.1.0"
 icon: person.crop.circle
 disabled: false
 type: device
+chip_prompt: "帮我保存联系人"
 
 triggers:
   - 联系人

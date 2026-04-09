@@ -6,6 +6,7 @@ version: "1.0.0"
 icon: calendar
 disabled: false
 type: device
+chip_prompt: "帮我创建日程"
 
 triggers:
   - 日历
