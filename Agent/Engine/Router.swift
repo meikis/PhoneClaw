@@ -48,13 +48,10 @@ extension AgentEngine {
         // Sticky routing: 当前消息没命中任何 trigger, 但最近 history 里有
         // 活跃 skill 上下文 -> 继续使用该 skill。
         //
-        // E2B 是产品的"轻量款", 定位 = 聊天 / 翻译 / 单轮查询, 不做多轮工具
-        // 对话。默认用户只装一个模型; 选 E2B 的用户冲着小体积 + 快反应来,
-        // 不是"降级版 E4B"。对 E2B 关闭 sticky, 让多轮补全落到 light 路径
-        // 当普通聊天处理, 避免模型在不擅长的任务上翻车后产生"能调工具的
-        // 假象"。这不是 fallback, 是定位差异 —— E4B 才做多轮 agent。
-        let isLightweightModel = llm.selectedModel.id.contains("e2b")
-        if matched.isEmpty, !isLightweightModel, let stickySkillId = recentActiveSkillId() {
+        // 框架对 E2B / E4B 完全一视同仁, 不做任何模型分支。如果小模型在某
+        // 些多轮场景下表现不稳, 那是模型能力问题, 框架不偷偷修。默认前提
+        // 是用户只装了一个模型, 装的是哪个就用哪个。
+        if matched.isEmpty, let stickySkillId = recentActiveSkillId() {
             matched.append(stickySkillId)
         }
 
@@ -76,6 +73,10 @@ extension AgentEngine {
     ///   固定窗口 4 经常错过 skill 上下文, 导致多轮对话失去 sticky 能力。
     ///   语义边界与 message 数量解耦, 任何长度的 agent loop 都能正确接住。
     ///
+    /// P1-1 源头修复: AgentEngine 只对 type: device 的 skill 打 eager tag,
+    /// content skill (translate 等) 从源头不参与 sticky, 避免一问一答
+    /// 纯变换后的闲聊被污染回 translate。
+    ///
     /// 这是纯框架层判定 — 不感知任何具体 skill 名, 不硬编任何业务字符串。
     private func recentActiveSkillId() -> String? {
         var sawCurrentUser = false
@@ -88,16 +89,15 @@ extension AgentEngine {
                 sawCurrentUser = true
                 continue
             }
-            // .assistant 也参与: 当 Router 在一轮里匹配到 skill 但 LLM 没调 tool
-            // (只追问澄清), 我们给 assistant message 打了 skillName, 这样 sticky
-            // 能接住下一轮的补全输入。
+            // .assistant, .skillResult, .system 只要 skillName 非空就算锚点。
+            // .assistant 的 tag 由 AgentEngine 在 eager 打 (device skill 才打)。
+            // .skillResult 是 ToolChain 在 tool 成功后 append, 自带 tool 名, 可反查 skill。
             guard (msg.role == .skillResult || msg.role == .system || msg.role == .assistant),
                   let name = msg.skillName, !name.isEmpty else {
                 continue
             }
 
             // name 可能是 skill id (如 "calendar") 或 tool name (如 "calendar-create-event")。
-            // 优先作为 skill id 解析; 不行再作为 tool name 反查 skill id。
             let asSkillId = skillRegistry.canonicalSkillId(for: name)
             if let def = skillRegistry.getDefinition(asSkillId), def.isEnabled {
                 return asSkillId

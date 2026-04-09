@@ -335,8 +335,17 @@ class AgentEngine {
 
         // Tag 这条 assistant placeholder 的 skillName, 让 sticky routing 在
         // 下一轮追问时能识别上下文 (即使本轮 LLM 没调 tool 只是澄清).
-        let routedSkillName = matchedSkillIdsForTurn.first
-        messages.append(ChatMessage(role: .assistant, content: "▍", skillName: routedSkillName))
+        //
+        // 只对 type: device 的 skill 打 tag — content skill (如 translate)
+        // 是一问一答的纯变换, 它的 assistant reply 代表"已完成", 不应该让
+        // 下一轮闲聊被 sticky 粘回去翻译。框架在这里按 skill metadata 决定,
+        // 不硬编具体 skill 名, 也不感知模型。
+        let stickyEligibleSkillID: String? = {
+            guard let id = matchedSkillIdsForTurn.first,
+                  let def = skillRegistry.getDefinition(id) else { return nil }
+            return def.metadata.type == .device ? id : nil
+        }()
+        messages.append(ChatMessage(role: .assistant, content: "▍", skillName: stickyEligibleSkillID))
         let msgIndex = messages.count - 1
 
         if requiresMultimodal {
