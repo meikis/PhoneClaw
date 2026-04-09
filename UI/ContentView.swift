@@ -289,34 +289,25 @@ struct ContentView: View {
     }
 
     // MARK: - Skill 快捷标签
-
-    /// chip 显示用的简写标签 (UI 表现层选择, 不影响核心数据)。
-    /// key = SkillEntry.id, value = 在 chip pill 上显示的短动作短语。
-    /// 没在表里的 skill 会 fallback 到 skill.displayName。
-    /// chip 实际发送的 prompt 仍然是 skill.samplePrompt (完整、自包含)。
-    private static let chipShortLabels: [String: String] = [
-        "calendar":  "帮我创建日程",
-        "contacts":  "帮我保存联系人",
-        "reminders": "帮我创建提醒事项",
-        "device":    "查询我手机信息",
-    ]
-
-    /// chip 隐藏名单 (UI 表现层选择): 这些 skill 不会出现在欢迎页 chip 列表里,
-    /// 但仍然在引擎里启用、可被用户手动输入触发。
-    private static let chipHiddenSkillIds: Set<String> = ["text"]
+    //
+    // Chip 完全由 SKILL.md 数据驱动:
+    //   - 显示文字 = skill.displayName (来自 SKILL.md 的 name-zh / name)
+    //   - 点击发送 = skill.samplePrompt (来自 SKILL.md examples[0].query)
+    //   - 图标 = skill.icon (来自 SKILL.md icon 字段)
+    //
+    // 框架不硬编任何具体 skill 名。加新 skill 只要 SKILL.md 写完, UI 自动显示。
 
     private var skillChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                ForEach(engine.enabledSkillInfos.filter { !Self.chipHiddenSkillIds.contains($0.name) }, id: \.name) { skill in
-                    let label = Self.chipShortLabels[skill.name] ?? skill.displayName
+                ForEach(engine.enabledSkillInfos.filter { !$0.samplePrompt.isEmpty }, id: \.name) { skill in
                     Button {
                         inputText = skill.samplePrompt
                         Task { await send() }
                     } label: {
                         HStack(spacing: 5) {
                             Image(systemName: skill.icon).font(.system(size: 11))
-                            Text(label).font(.system(size: 12, weight: .medium))
+                            Text(skill.displayName).font(.system(size: 12, weight: .medium))
                         }
                         .foregroundStyle(Theme.textSecondary)
                         .padding(.horizontal, 12)
