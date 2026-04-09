@@ -26,14 +26,6 @@
 		AA1000000000000000000003 /* Gemma4Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000003 /* Gemma4Config.swift */; };
 		AA1000000000000000000004 /* Gemma4LanguageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000004 /* Gemma4LanguageModel.swift */; };
 		AA1000000000000000000005 /* Gemma4Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000005 /* Gemma4Model.swift */; };
-		AA1000000000000000000100 /* BundledModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000100 /* BundledModel.swift */; };
-		AA1000000000000000000101 /* RuntimeBudgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000101 /* RuntimeBudgets.swift */; };
-		AA1000000000000000000103 /* ModelInstallState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000103 /* ModelInstallState.swift */; };
-		AA1000000000000000000104 /* ModelPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000104 /* ModelPaths.swift */; };
-		AA1000000000000000000105 /* MemoryStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000105 /* MemoryStats.swift */; };
-		AA1000000000000000000106 /* ModelDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000106 /* ModelDownloader.swift */; };
-		AA1000000000000000000107 /* ModelInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000107 /* ModelInstaller.swift */; };
-		AA1000000000000000000108 /* GPULifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000108 /* GPULifecycle.swift */; };
 		AA1000000000000000000006 /* Gemma4Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000006 /* Gemma4Registration.swift */; };
 		AA1000000000000000000007 /* Gemma4RoPE.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000007 /* Gemma4RoPE.swift */; };
 		AA1000000000000000000008 /* Gemma4TextModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000008 /* Gemma4TextModel.swift */; };
@@ -49,25 +41,31 @@
 		AA1000000000000000000019 /* Gemma4Processor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000019 /* Gemma4Processor.swift */; };
 		AA1000000000000000000020 /* Gemma4AudioFeatureExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000020 /* Gemma4AudioFeatureExtractor.swift */; };
 		AA1000000000000000000021 /* Gemma4AudioModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000021 /* Gemma4AudioModel.swift */; };
+		AA1000000000000000000100 /* BundledModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000100 /* BundledModel.swift */; };
+		AA1000000000000000000101 /* RuntimeBudgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000101 /* RuntimeBudgets.swift */; };
+		AA1000000000000000000103 /* ModelInstallState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000103 /* ModelInstallState.swift */; };
+		AA1000000000000000000104 /* ModelPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000104 /* ModelPaths.swift */; };
+		AA1000000000000000000105 /* MemoryStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000105 /* MemoryStats.swift */; };
+		AA1000000000000000000106 /* ModelDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000106 /* ModelDownloader.swift */; };
+		AA1000000000000000000107 /* ModelInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000107 /* ModelInstaller.swift */; };
+		AA1000000000000000000108 /* GPULifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2000000000000000000108 /* GPULifecycle.swift */; };
+		B1A2C3D4E5F607182930B100 /* Library in Resources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F607182930B101 /* Library */; };
 		B881A2E7F9483D5ED2AC206B /* SkillsManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D269F8BFCAB68D82440F704B /* SkillsManagerView.swift */; };
 		B8A84E4D0DDDE011B5929DA2 /* AgentEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18A47114A10132E25E220F8 /* AgentEngine.swift */; };
 		BD75E7E5620A8FF0A868E9F0 /* libPods-PhoneClaw.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F4ACB3F4531FF61E0AADA07 /* libPods-PhoneClaw.a */; };
 		C1A2B3D4E5F607182930A1B2 /* SkillLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F607182930A1B3 /* SkillLoader.swift */; };
 		C1A2B3D4E5F607182930A1C2 /* SkillRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3D4E5F607182930A1C3 /* SkillRegistry.swift */; };
+		C3C4D5E6F7081A2B3C52D3E4 /* ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C4D5E6F7081A2B3C52D3E5 /* ChatModels.swift */; };
+		C4D5E6F70819A2B3C463E4F5 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D5E6F70819A2B3C463E4F6 /* Theme.swift */; };
 		D3A1B2C3D4E5F60718290001 /* ToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290101 /* ToolRegistry.swift */; };
 		D3A1B2C3D4E5F60718290002 /* AppPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290102 /* AppPermissions.swift */; };
 		D3A1B2C3D4E5F60718290003 /* Stores.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290103 /* Stores.swift */; };
 		D3A1B2C3D4E5F60718290004 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290104 /* Helpers.swift */; };
 		D3A1B2C3D4E5F60718290005 /* Clipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290105 /* Clipboard.swift */; };
-		D3A1B2C3D4E5F60718290006 /* Device.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290106 /* Device.swift */; };
-		D3A1B2C3D4E5F60718290007 /* Text.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290107 /* Text.swift */; };
 		D3A1B2C3D4E5F60718290008 /* Calendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290108 /* Calendar.swift */; };
 		D3A1B2C3D4E5F60718290009 /* Reminders.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290109 /* Reminders.swift */; };
 		D3A1B2C3D4E5F60718290010 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A1B2C3D4E5F60718290110 /* Contacts.swift */; };
-		C3C4D5E6F7081A2B3C52D3E4 /* ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3C4D5E6F7081A2B3C52D3E5 /* ChatModels.swift */; };
-		C4D5E6F70819A2B3C463E4F5 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D5E6F70819A2B3C463E4F6 /* Theme.swift */; };
 		ICONASSETS0000000000002 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ICONASSETS0000000000001 /* Assets.xcassets */; };
-		B1A2C3D4E5F607182930B100 /* Library in Resources */ = {isa = PBXBuildFile; fileRef = B1A2C3D4E5F607182930B101 /* Library */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -94,14 +92,6 @@
 		AA2000000000000000000003 /* Gemma4Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4Config.swift; sourceTree = "<group>"; };
 		AA2000000000000000000004 /* Gemma4LanguageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4LanguageModel.swift; sourceTree = "<group>"; };
 		AA2000000000000000000005 /* Gemma4Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4Model.swift; sourceTree = "<group>"; };
-		AA2000000000000000000100 /* BundledModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledModel.swift; sourceTree = "<group>"; };
-		AA2000000000000000000101 /* RuntimeBudgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeBudgets.swift; sourceTree = "<group>"; };
-		AA2000000000000000000103 /* ModelInstallState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelInstallState.swift; sourceTree = "<group>"; };
-		AA2000000000000000000104 /* ModelPaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPaths.swift; sourceTree = "<group>"; };
-		AA2000000000000000000105 /* MemoryStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStats.swift; sourceTree = "<group>"; };
-		AA2000000000000000000106 /* ModelDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDownloader.swift; sourceTree = "<group>"; };
-		AA2000000000000000000107 /* ModelInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelInstaller.swift; sourceTree = "<group>"; };
-		AA2000000000000000000108 /* GPULifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPULifecycle.swift; sourceTree = "<group>"; };
 		AA2000000000000000000006 /* Gemma4Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4Registration.swift; sourceTree = "<group>"; };
 		AA2000000000000000000007 /* Gemma4RoPE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4RoPE.swift; sourceTree = "<group>"; };
 		AA2000000000000000000008 /* Gemma4TextModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4TextModel.swift; sourceTree = "<group>"; };
@@ -110,28 +100,34 @@
 		AA2000000000000000000019 /* Gemma4Processor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4Processor.swift; sourceTree = "<group>"; };
 		AA2000000000000000000020 /* Gemma4AudioFeatureExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4AudioFeatureExtractor.swift; sourceTree = "<group>"; };
 		AA2000000000000000000021 /* Gemma4AudioModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gemma4AudioModel.swift; sourceTree = "<group>"; };
+		AA2000000000000000000100 /* BundledModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundledModel.swift; sourceTree = "<group>"; };
+		AA2000000000000000000101 /* RuntimeBudgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeBudgets.swift; sourceTree = "<group>"; };
+		AA2000000000000000000103 /* ModelInstallState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelInstallState.swift; sourceTree = "<group>"; };
+		AA2000000000000000000104 /* ModelPaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPaths.swift; sourceTree = "<group>"; };
+		AA2000000000000000000105 /* MemoryStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryStats.swift; sourceTree = "<group>"; };
+		AA2000000000000000000106 /* ModelDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelDownloader.swift; sourceTree = "<group>"; };
+		AA2000000000000000000107 /* ModelInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelInstaller.swift; sourceTree = "<group>"; };
+		AA2000000000000000000108 /* GPULifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPULifecycle.swift; sourceTree = "<group>"; };
+		B1A2C3D4E5F607182930B101 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Library; sourceTree = "<group>"; };
 		C1A2B3D4E5F607182930A1B3 /* SkillLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillLoader.swift; sourceTree = "<group>"; };
 		C1A2B3D4E5F607182930A1C3 /* SkillRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRegistry.swift; sourceTree = "<group>"; };
+		C3C4D5E6F7081A2B3C52D3E5 /* ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatModels.swift; sourceTree = "<group>"; };
+		C4D5E6F70819A2B3C463E4F6 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		D269F8BFCAB68D82440F704B /* SkillsManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsManagerView.swift; sourceTree = "<group>"; };
 		D3A1B2C3D4E5F60718290101 /* ToolRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolRegistry.swift; sourceTree = "<group>"; };
 		D3A1B2C3D4E5F60718290102 /* AppPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPermissions.swift; sourceTree = "<group>"; };
 		D3A1B2C3D4E5F60718290103 /* Stores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stores.swift; sourceTree = "<group>"; };
 		D3A1B2C3D4E5F60718290104 /* Helpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		D3A1B2C3D4E5F60718290105 /* Clipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clipboard.swift; sourceTree = "<group>"; };
-		D3A1B2C3D4E5F60718290106 /* Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
-		D3A1B2C3D4E5F60718290107 /* Text.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Text.swift; sourceTree = "<group>"; };
 		D3A1B2C3D4E5F60718290108 /* Calendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Calendar.swift; sourceTree = "<group>"; };
 		D3A1B2C3D4E5F60718290109 /* Reminders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reminders.swift; sourceTree = "<group>"; };
 		D3A1B2C3D4E5F60718290110 /* Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contacts.swift; sourceTree = "<group>"; };
-		C3C4D5E6F7081A2B3C52D3E5 /* ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatModels.swift; sourceTree = "<group>"; };
-		C4D5E6F70819A2B3C463E4F6 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		D269F8BFCAB68D82440F704B /* SkillsManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsManagerView.swift; sourceTree = "<group>"; };
 		D5E6F7081A2B3C4D5E6F7084 /* gemma-4-e2b-it-4bit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "gemma-4-e2b-it-4bit"; path = "Models/gemma-4-e2b-it-4bit"; sourceTree = "<group>"; };
 		D5E6F7081A2B3C4D5E6F7086 /* gemma-4-e4b-it-4bit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "gemma-4-e4b-it-4bit"; path = "Models/gemma-4-e4b-it-4bit"; sourceTree = "<group>"; };
 		E18A47114A10132E25E220F8 /* AgentEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentEngine.swift; sourceTree = "<group>"; };
 		E62C3CEFC7AE63873D751E75 /* ConfigurationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationsView.swift; sourceTree = "<group>"; };
 		F5ED928BF14864713A9A9D16 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		ICONASSETS0000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		B1A2C3D4E5F607182930B101 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Library; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -191,31 +187,6 @@
 				C1A2B3D4E5F607182930A1C3 /* SkillRegistry.swift */,
 			);
 			path = Skills;
-			sourceTree = "<group>";
-		};
-		D3A1B2C3D4E5F60718290200 /* Tools */ = {
-			isa = PBXGroup;
-			children = (
-				D3A1B2C3D4E5F60718290101 /* ToolRegistry.swift */,
-				D3A1B2C3D4E5F60718290102 /* AppPermissions.swift */,
-				D3A1B2C3D4E5F60718290103 /* Stores.swift */,
-				D3A1B2C3D4E5F60718290104 /* Helpers.swift */,
-				D3A1B2C3D4E5F60718290300 /* Handlers */,
-			);
-			path = Tools;
-			sourceTree = "<group>";
-		};
-		D3A1B2C3D4E5F60718290300 /* Handlers */ = {
-			isa = PBXGroup;
-			children = (
-				D3A1B2C3D4E5F60718290105 /* Clipboard.swift */,
-				D3A1B2C3D4E5F60718290106 /* Device.swift */,
-				D3A1B2C3D4E5F60718290107 /* Text.swift */,
-				D3A1B2C3D4E5F60718290108 /* Calendar.swift */,
-				D3A1B2C3D4E5F60718290109 /* Reminders.swift */,
-				D3A1B2C3D4E5F60718290110 /* Contacts.swift */,
-			);
-			path = Handlers;
 			sourceTree = "<group>";
 		};
 		A31476ED2F85741500318978 /* Engine */ = {
@@ -316,6 +287,29 @@
 				EF4D07A808616D6F13771DBE /* UI */,
 			);
 			name = PhoneClaw;
+			sourceTree = "<group>";
+		};
+		D3A1B2C3D4E5F60718290200 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				D3A1B2C3D4E5F60718290101 /* ToolRegistry.swift */,
+				D3A1B2C3D4E5F60718290102 /* AppPermissions.swift */,
+				D3A1B2C3D4E5F60718290103 /* Stores.swift */,
+				D3A1B2C3D4E5F60718290104 /* Helpers.swift */,
+				D3A1B2C3D4E5F60718290300 /* Handlers */,
+			);
+			path = Tools;
+			sourceTree = "<group>";
+		};
+		D3A1B2C3D4E5F60718290300 /* Handlers */ = {
+			isa = PBXGroup;
+			children = (
+				D3A1B2C3D4E5F60718290105 /* Clipboard.swift */,
+				D3A1B2C3D4E5F60718290108 /* Calendar.swift */,
+				D3A1B2C3D4E5F60718290109 /* Reminders.swift */,
+				D3A1B2C3D4E5F60718290110 /* Contacts.swift */,
+			);
+			path = Handlers;
 			sourceTree = "<group>";
 		};
 		E0660A5AE3C683B7B20600EE /* Agent */ = {
@@ -499,8 +493,6 @@
 				D3A1B2C3D4E5F60718290003 /* Stores.swift in Sources */,
 				D3A1B2C3D4E5F60718290004 /* Helpers.swift in Sources */,
 				D3A1B2C3D4E5F60718290005 /* Clipboard.swift in Sources */,
-				D3A1B2C3D4E5F60718290006 /* Device.swift in Sources */,
-				D3A1B2C3D4E5F60718290007 /* Text.swift in Sources */,
 				D3A1B2C3D4E5F60718290008 /* Calendar.swift in Sources */,
 				D3A1B2C3D4E5F60718290009 /* Reminders.swift in Sources */,
 				D3A1B2C3D4E5F60718290010 /* Contacts.swift in Sources */,
@@ -637,7 +629,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = PhoneClaw.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -656,7 +650,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = PhoneClaw.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
