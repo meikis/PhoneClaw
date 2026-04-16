@@ -203,13 +203,17 @@ struct LiveModeView: View {
         return nil
     }
 
+    // 色温方案: user 冷灰, AI 暖琥珀 (和 Orb 同色系, 说话时颜色呼应)
+    private static let userCaptionColor = Color(white: 0.78)     // 冷中性灰
+    private static let aiCaptionColor   = Color(red: 1.00, green: 0.72, blue: 0.40)  // 暖琥珀
+
     private var captionArea: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // 用户文字 — 左对齐灰度文字流, partial 更浅
+            // 用户文字 — 冷灰, partial 更浅
             if let current = currentUserCaption {
                 Text(current.text)
                     .font(.system(size: 15, weight: .regular))
-                    .foregroundStyle(Color(white: 0.85).opacity(current.isLive ? 0.45 : 0.65))
+                    .foregroundStyle(Self.userCaptionColor.opacity(current.isLive ? 0.45 : 0.70))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentTransition(.interpolate)
@@ -217,11 +221,11 @@ struct LiveModeView: View {
                     .transition(.opacity)
             }
 
-            // AI 回复 — 同左对齐, 稍亮一点, 流式内插
+            // AI 回复 — 暖琥珀, 和 Orb 同色系
             if realtimeCaption == nil, !liveEngine.lastReply.isEmpty {
                 Text(liveEngine.lastReply)
                     .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(Color(white: 0.90).opacity(0.82))
+                    .foregroundStyle(Self.aiCaptionColor.opacity(0.85))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentTransition(.interpolate)
