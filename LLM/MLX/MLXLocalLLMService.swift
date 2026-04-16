@@ -754,9 +754,12 @@ public class MLXLocalLLMService: LLMEngine {
                             cacheForGenerate = nil
                         }
 
-                        // Construct iterator with our cache (or nil) and feed
-                        // the closure-based generate, matching the original
-                        // code path except cache is now plumbed through.
+                        // G2 (2026-04-17 实验, 已 revert): 试过 MinTokenEOSGuard 强制
+                        // 至少生成 N token 防 R1 0-token 空回复. 数据揭示副作用更糟:
+                        // 强制生成把 E2B 在 R2 follow-up 场景推到 "再次 emit tool_call"
+                        // → 5 轮 repeat 重复创建日历事件 / 联系人, 数据风险远超 "(无回复)".
+                        // 保留 MinTokenEOSGuard 实现以备将来精确路径使用 (例如只对 R1 启用,
+                        // 但需要 framework 标识 R1/R2 上下文, 当前 generate 路径不感知).
                         let iterator = try TokenIterator(
                             input: inputForGenerate,
                             model: context.model,
