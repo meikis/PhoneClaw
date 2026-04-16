@@ -560,6 +560,16 @@ class LiveModeEngine {
         """
     }
 
+    /// 根据是否有摄像头画面，返回合适的 Live system prompt。
+    /// 无画面 = 纯语音约束；有画面 = 语音约束 + 视觉感知。
+    private func liveSystemPrompt(hasVision: Bool) -> String {
+        var base = liveVoiceSystemPrompt()
+        if hasVision {
+            base += "\n你可以看到用户摄像头的实时画面。如果用户的问题和画面有关，请结合画面内容回答。如果用户提到具体的画面细节但你看不清，可以让用户把摄像头固定一下再问。"
+        }
+        return base
+    }
+
     private func cancelIncompleteTurnFollowUp() {
         incompleteTurnTimeoutTask?.cancel()
         incompleteTurnTimeoutTask = nil
@@ -802,17 +812,23 @@ class LiveModeEngine {
         } else {
             print("[Live] 📷 frameProvider is nil — camera button not pressed, or UI hook-up broken")
         }
-        var liveHint = "\n[语音模式] 回答会被朗读出来。用纯中文口语回答，根据用户意图决定详略（默认简短，用户明确要求详细/展开时可多说几句），禁止英文和markdown符号。多用中文逗号和句号，方便语音自然分段播放。不要在回答开头自报名字。"
-        if frame != nil {
-            liveHint += "\n用户通过摄像头分享了当前画面，如果问题和画面有关请结合画面内容回答。"
+        // 构建 Chat.Message 数组（复用 AgentEngine 已验证的多模态模式，避免 buildLightweightTextPrompt 的双重模板化问题）
+        let liveHint = "\n[语音模式] 回答会被朗读出来。用纯中文口语回答，根据用户意图决定详略（默认简短，用户明确要求详细/展开时可多说几句），禁止英文和markdown符号。多用中文逗号和句号，方便语音自然分段播放。不要在回答开头自报名字。"
+        var chatMessages: [Chat.Message] = [
+            .system(liveSystemPrompt(hasVision: frame != nil))
+        ]
+        for msg in liveHistory.suffix(maxLiveHistoryDepth) {
+            switch msg.role {
+            case .user:      chatMessages.append(.user(msg.content))
+            case .assistant: chatMessages.append(.assistant(msg.content))
+            default:         break
+            }
         }
-        let prompt = PromptBuilder.buildLightweightTextPrompt(
-            userMessage: transcript + liveHint,
-            history: liveHistory,
-            systemPrompt: liveVoiceSystemPrompt(),
-            enableThinking: false,
-            historyDepth: maxLiveHistoryDepth
-        )
+        if let frame {
+            chatMessages.append(.user(transcript + liveHint, images: [.ciImage(frame)]))
+        } else {
+            chatMessages.append(.user(transcript + liveHint))
+        }
 
         metrics.llmStartedAt = CFAbsoluteTimeGetCurrent()
         startSynthesisPipeline(generation: gen)
@@ -824,8 +840,7 @@ class LiveModeEngine {
         var incompleteType: LiveIncompleteTurnType?
         var isFirstToken = true
         var isFirstSentence = true
-        let images: [CIImage] = frame.map { [$0] } ?? []
-        let stream = llm.generateStream(prompt: prompt, images: images, audios: [])
+        let stream = llm.generateStream(chat: chatMessages)
 
         do {
             try await withThrowingTaskGroup(of: Void.self) { group in

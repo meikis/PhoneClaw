@@ -509,7 +509,9 @@ void main() {
         const vector = new THREE.Vector3(0, 0, 5);
         vector.applyQuaternion(quaternion);
         camera.position.copy(vector);
-        camera.lookAt(sphere.position);
+        // LookAt 下方一点, 让 sphere 出现在帧的上部, 给下方状态文字和
+        // 对话区腾地方 (视觉上 Orb 上移)
+        camera.lookAt(new THREE.Vector3(0, -0.5, 0));
 
         sphereMaterial.userData.shader.uniforms.time.value +=
           (dt * 0.1 * output.x) / 255;
