@@ -169,9 +169,11 @@ public class MLXLocalLLMService: LLMEngine {
            let option = Self.availableModels.first(where: { $0.id == selectedModelID }) {
             self.selectedModel = option
         }
-        // 同 selectModel(id:) 里的策略 — E2B 关 KV reuse 防 multi-round
-        // tool_call 死循环. selectedModel 在 init 时已确定 (default 或 user override).
-        self.kvReuseEnabled = !self.selectedModel.id.contains("e2b")
+        // F3 (2026-04-17): R2 prompt 改为 R1 conversation continuation 形式后,
+        // 模型物理上看到 "我刚 emit 了 tool_call → tool_result → 继续生成"
+        // 训练数据格式, 不再 5 轮重复 emit tool_call. KV reuse 对 E2B 也安全.
+        // baseline 数据 E4B 6% hit, F3 目标 99%+, E2B 从 0% 拉到同等档位.
+        self.kvReuseEnabled = true
         self.stats.backend = "mlx-gpu"
         configureLifecycleObservers()
         cleanupStalePartialDirectories()

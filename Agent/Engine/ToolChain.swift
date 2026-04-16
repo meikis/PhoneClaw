@@ -281,12 +281,12 @@ extension AgentEngine {
             let toolResultSummary = toolResultSummaryForModel(toolName: "list_skills", toolResult: resultText)
             messages.append(ChatMessage(role: .skillResult, content: toolResultSummary, skillName: "list_skills"))
 
-            let followUpPrompt = PromptBuilder.buildToolAnswerPrompt(
-                originalPrompt: prompt,
+            // F3: R2 = R1 + R1 output + tool_result (continuation form).
+            let followUpPrompt = PromptBuilder.appendToolResult(
+                toR1Prompt: prompt,
+                r1Output: fullText,
                 toolName: "list_skills",
-                toolResultSummary: toolResultSummary,
-                userQuestion: userQuestion,
-                currentImageCount: images.count
+                toolResultSummary: toolResultSummary
             )
 
             messages.append(ChatMessage(role: .assistant, content: "▍"))
@@ -533,12 +533,13 @@ extension AgentEngine {
                 return
             }
 
-            let followUpPrompt = PromptBuilder.buildToolAnswerPrompt(
-                originalPrompt: prompt,
+            // F3: R2 prompt = R1 prompt + R1 output + tool_result message.
+            // 物理上是 R1 conversation 的延伸 → KV cache 自然命中 R1 全部 token.
+            let followUpPrompt = PromptBuilder.appendToolResult(
+                toR1Prompt: prompt,
+                r1Output: fullText,
                 toolName: call.name,
-                toolResultSummary: toolResultSummary,
-                userQuestion: userQuestion,
-                currentImageCount: images.count
+                toolResultSummary: toolResultSummary
             )
 
             messages.append(ChatMessage(role: .assistant, content: "▍"))

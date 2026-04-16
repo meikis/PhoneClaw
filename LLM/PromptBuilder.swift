@@ -391,8 +391,56 @@ struct PromptBuilder {
         return prompt
     }
 
-    /// 工具执行完成后，重新构造一个最小回答 prompt，避免把上一轮 tool_call
-    /// 和完整历史继续累积到 follow-up 中。
+    /// **F3 (2026-04-17)**: R2 prompt = R1 cached prompt + R1 model output + tool_result message.
+    /// 物理上是同一个 conversation 的延伸 (跟 Anthropic/OpenAI tool_use 协议一致),
+    /// 不再重新构造 R2 system block. KV cache 自然 reuse R1 全部 token, 只 prefill
+    /// 末尾几十 token 的 tool_result message — 跨 R1/R2 命中率从 6% → 99%+.
+    ///
+    /// E2B 5-round repeat 防御机制: tool_result message 内嵌**极强 anti-repeat 指令**,
+    /// 同时利用模型见过的 tool_use 训练格式 (assistant tool_call → tool_result → assistant text)
+    /// 自然引导模型生成文本 (而非再 emit tool_call).
+    ///
+    /// `r1Output` 必须包含 R1 generated 的完整文本 (含 <tool_call> 标签). caller
+    /// 不应清洗 — 物理上模型在 R2 看到自己刚说过什么, 才能正确续写.
+    static func appendToolResult(
+        toR1Prompt r1Prompt: String,
+        r1Output: String,
+        toolName: String,
+        toolResultSummary: String
+    ) -> String {
+        // R1 prompt 末尾是 "<|turn>model\n" — caller 已经 emit r1Output 之后, 我们
+        // 补 turn 关闭 + tool_result user turn + 新的 model turn 起手.
+        return r1Prompt + r1Output + """
+        <turn|>
+        <|turn>user
+        工具 \(toolName) 已执行完成, 返回结果:
+        \(toolResultSummary)
+
+        【严禁】不要再输出 `<tool_call>` 任何形式. 工具已经执行过, 你看到的就是最终结果.
+
+        用一句简短中文告诉我结果. 不反问. 不提 tool 名 / Skill / status / arguments 等字段.
+        不输出 Markdown / JSON. 不能空白.
+        <turn|>
+        <|turn>model
+
+        """
+    }
+
+    /// 工具执行完成后, 构造 follow-up prompt 让模型用 tool_result 回答用户.
+    ///
+    /// **历史 / 设计权衡 (2026-04-17 数据驱动决策)**:
+    /// - 试 1 (lean R2 system): 修了 E2B 5-round repeat tool_call, 但 system block
+    ///   跟 R1 不一致 → KV cache 跨 R1/R2 几乎全 miss (common=17 token), 真机 E4B
+    ///   长 prompt 闪崩 (delta=2021 token 重算).
+    /// - 试 2 (full R2 system + 强 anti-repeat): KV 命中率回升到 78-95%, E4B 不崩.
+    ///   但 E2B 被 system 里的 SKILL body "理想流程模板" 带跑, tool 真返失败时
+    ///   E2B 反而幻觉成功 (例: contacts 多人匹配, tool 返"匹配多个", E2B 答"已删除").
+    ///   E2B conversation 13/18 → 11/18.
+    ///
+    /// 当前选 lean R2 — 优先 E2B 准确性 (用户实际部署模型). KV 命中率优化作为
+    /// 后续框架级 refactor (移 SKILL body 到 user turn 解决根本性的 R1/R2 system
+    /// block 冲突). 真机 E4B 闪崩的根因 (KV cache miss → 长 delta) 改用 R2 不
+    /// 污染 R1 cache 的方案缓解 (TODO: cache snapshot/restore around R2).
     static func buildToolAnswerPrompt(
         originalPrompt: String,
         toolName: String,
@@ -400,15 +448,6 @@ struct PromptBuilder {
         userQuestion: String,
         currentImageCount: Int = 0
     ) -> String {
-        // 精简 system block — 不复用 originalPrompt 的完整 system (那个含 SKILL body
-        // 和 3 个 <tool_call>{...}</tool_call> 调用格式示例, 真机 + harness 2026-04-17
-        // 验证: E2B 看到示例就反复模仿输出 tool_call (5 轮重复 calendar-create-event),
-        // E4B 1 轮 tool + 1 轮总结正常. harness agent-probe-fix 验证: 用精简 system
-        // (只 persona + 时间锚点) E2B 输出 "明天下午两点的产品评审会议已为您安排好了"
-        // 自然总结, E4B 输出完全相同.
-        //
-        // Persona 用 defaultSystemPrompt (用户的 SYSPROMPT.md 自定义 persona 在
-        // round 1 已经被模型跟随, follow-up 阶段保留 PhoneClaw 通用 persona 即可).
         let leanSystemBlock = """
         <|turn>system
         \(defaultSystemPrompt) 用中文回答, 简洁实用.

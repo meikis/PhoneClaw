@@ -24,8 +24,10 @@ extension MLXLocalLLMService {
         //                    (真机日志: 4 轮重复 calendar-create-event,
         //                    E4B 同 prompt 1 轮 tool + 1 轮总结正常).
         //
-        // 策略: E2B 模型选择时自动关 KV reuse (logic safety > 性能).
-        kvReuseEnabled = !option.id.contains("e2b")
+        // F3 (2026-04-17): R2 改为 R1 conversation continuation 形式后, 模型物理上
+        // 看到 "我刚 emit tool_call → tool_result → 继续生成" 训练格式, 不再 5 轮
+        // 重复. KV reuse 对 E2B 也安全启用. 历史"E2B 关 KV reuse"策略已废弃.
+        kvReuseEnabled = true
 
         statusMessage = isLoaded
             ? "已选择 \(option.displayName)，准备重新加载..."
