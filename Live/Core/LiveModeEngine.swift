@@ -854,7 +854,13 @@ class LiveModeEngine {
                         guard !parseResult.speakableText.isEmpty else { continue }
 
                         rawBuffer += parseResult.speakableText
-                        self.lastReply = OutputSanitizer.sanitizeFinal(rawBuffer, mode: .liveVoice)
+                        let newReply = OutputSanitizer.sanitizeFinal(rawBuffer, mode: .liveVoice)
+                        // Dispatch to main actor for immediate @Observable propagation to SwiftUI.
+                        // Without this, 20-30 tok/s updates get coalesced and Text view only
+                        // redraws at end of turn — user sees TTS voice play before text appears.
+                        Task { @MainActor [weak self] in
+                            self?.lastReply = newReply
+                        }
                         let delta = sanitizer.feed(rawBuffer)
                         guard !delta.isEmpty else { continue }
 

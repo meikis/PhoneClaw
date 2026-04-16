@@ -221,24 +221,24 @@ struct LiveModeView: View {
                     .transition(.opacity)
             }
 
-            // AI 回复 — 暖琥珀, 透明度贴近 user, 同配方 streaming 动效
+            // AI 回复 — 暖琥珀, 流式追加不加任何动画 (LLM 40ms/token, 任何 >0 的动画
+            // duration 都会和下一帧更新碰撞; 直接随 lastReply 变化原样刷新, 天然是
+            // "一个字一个字长出来"的打字机效果, 和 TTS 发声进度同步)
             if realtimeCaption == nil, !liveEngine.lastReply.isEmpty {
                 Text(liveEngine.lastReply)
                     .font(.system(size: 15, weight: .regular))
                     .foregroundStyle(Self.aiCaptionColor.opacity(0.70))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentTransition(.interpolate)
                     .id("ai-reply")
                     .transition(.opacity)
             }
         }
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, alignment: .leading)
-        // 短 easeOut (0.18s): LLM 每 ~40ms 吐一个 token, 动画太长会堆叠;
-        // 短动画配合高频更新自然呈现 "字符从左到右渐出" 的流式质感.
+        // 只对 user caption 做短动画 (它只变一次 partial → final);
+        // AI reply 随 token 高频更新, 不加 animation value, 避免动画互相打断.
         .animation(.easeOut(duration: 0.18), value: currentUserCaption?.text)
-        .animation(.easeOut(duration: 0.18), value: liveEngine.lastReply)
     }
 
     // MARK: - 用户文字气泡
