@@ -142,8 +142,31 @@ struct PromptBuilder {
     struct PreloadedSkill {
         let id: String
         let displayName: String
+        /// Full SKILL.md body — 旧字段, Live voice 路径仍在用. 主 agent 路径改用 compactSchema.
         let body: String
         let allowedTools: [String]
+        /// Path 1 (2026-04-17): 主 agent 路径用紧凑 schema (~200 chars/SKILL) 替代
+        /// 完整 SKILL body (~3000 chars/SKILL). E4B 真机 multi-SKILL 场景 streamingPrompt
+        /// 从 ~5000 chars 降到 ~2000 chars, prefill 内存峰值显著下降, jetsam 不再触发.
+        /// 模型还能拿到 tool 调用 schema, 不丢调用能力. SKILL.md 里的"行为细则"
+        /// (e.g., 跨轮参数合并, 软参不追问) 暂时不进 prompt — 实际跑 HARNESS 验证质量损失.
+        let compactSchema: String
+
+        /// 构造紧凑 schema. tools 是 ToolRegistry 里这个 SKILL 注册的 RegisteredTool 列表.
+        static func makeCompactSchema(skillName: String, tools: [(name: String, description: String, parameters: String, requiredParameters: [String])]) -> String {
+            if tools.isEmpty {
+                return "（content-type SKILL, 无 tool, 按 SKILL 指令直接生成文本结果）"
+            }
+            var lines: [String] = []
+            for t in tools {
+                lines.append("- `\(t.name)`: \(t.description)")
+                lines.append("  参数: \(t.parameters)")
+                if !t.requiredParameters.isEmpty {
+                    lines.append("  必填: \(t.requiredParameters.joined(separator: ", "))")
+                }
+            }
+            return lines.joined(separator: "\n")
+        }
     }
 
     /// 构造完整 Prompt（包含工具定义 + 对话历史）
@@ -232,7 +255,7 @@ struct PromptBuilder {
             }
             for sk in preloadedSkills {
                 prompt += "\n━━ Skill: \(sk.displayName) ━━\n"
-                prompt += sk.body + "\n"
+                prompt += sk.compactSchema + "\n"
             }
             prompt += "━━━━━━━━━━━━━━━━━━━━\n"
         }
@@ -510,11 +533,10 @@ struct PromptBuilder {
         1. 不要调用工具，不要输出 `<tool_call>`。
         2. 只输出一个 JSON object，内容就是 arguments 本身。
         3. 不要输出 Markdown、代码块、解释、字段草稿或多余文字。
-        4. 可选字段如果没有，就直接省略。
+        4. 可选字段如果没有，就直接省略。tool 参数说明里标"可选"的字段不算必填.
         5. 时间字段必须转换成 ISO 8601，例如 `2026-04-07T20:00:00`。
-        6. 如果缺少必填参数,只输出一个 JSON object: {"_needs_clarification": "..."}。
-           "..." 部分必须用一句完整中文,直接陈述当前请求缺哪个具体参数,
-           不能含尖括号、不能含占位符、不能复制本规则的任何字面文本。
+        6. 只有用户原话完全没说某个必填参数, 才输出 _needs_clarification 字段+一句具体追问.
+           绝大多数情况应该直接给 arguments, 不要轻易追问. 可选字段缺失绝不追问.
         <turn|>
         <|turn>model
 
@@ -561,9 +583,8 @@ struct PromptBuilder {
         4. `arguments` 里只保留当前工具需要的参数；没有的可选参数直接省略。
         5. 不要输出 Markdown、代码块、解释、草稿或多余文字。
         6. 时间字段必须转换成 ISO 8601，例如 `2026-04-07T20:00:00`。
-        7. 如果缺少执行所需的关键信息,只输出一个 JSON object: {"_needs_clarification": "..."}。
-           "..." 部分必须用一句完整中文,直接陈述当前请求缺哪个具体信息,
-           不能含尖括号、不能含占位符、不能复制本规则的任何字面文本。
+        7. 只有用户原话完全没说某个执行必需的信息, 才输出 _needs_clarification 字段+一句具体追问.
+           绝大多数情况直接给 name+arguments, 不要轻易追问.
         <turn|>
         <|turn>model
 
@@ -619,8 +640,8 @@ struct PromptBuilder {
         3. 如果任务需要先获取一个结果、再交给另一个 Skill 继续处理,涉及到的所有 Skill 都要列出来,不要只写最终那一个。
         4. 如果"最近已知的工具结果摘要"已经提供了部分信息,也要据此补全后续需要的 Skill,不要漏掉。
         5. 如果用户需求不需要任何 Skill,返回空数组 `[]`。
-        6. 如果无法判断需要哪些 Skill,返回:
-           {"required_skills": [], "needs_clarification": "请说明具体需要什么帮助"}
+        6. 如果完全无法判断, 返回 required_skills 为空数组, 同时把 needs_clarification 字段
+           填成一句具体追问 (用一句中文陈述需要追问什么, 不要复读本规则的字面文本).
         <turn|>
         <|turn>model
 
@@ -685,8 +706,8 @@ struct PromptBuilder {
         5. 如果不需要任何技能或工具，返回 `steps: []`。
         6. 如果后续步骤需要的信息可以通过前置步骤获得，或者已经出现在"最近已知的工具结果摘要"里，仍然要先把这些步骤规划出来，不要提前提问。
         7. 只要 `steps` 里还能放入至少一个可执行步骤，`needs_clarification` 就必须是 null。
-        8. 只有在没有任何可行步骤可以获得关键缺失信息时，才返回：
-           {"goal":"", "steps": [], "needs_clarification": "请说明具体需要什么"}
+        8. 只有在完全没有任何可行步骤可以获得关键缺失信息时, 才把 steps 留空数组,
+           同时把 needs_clarification 字段填成一句具体追问 (一句中文, 不要复读本规则的字面文本).
         <turn|>
         <|turn>model
 
@@ -739,9 +760,8 @@ struct PromptBuilder {
         4. 可选字段如果没有，就直接省略。
         5. 如果上面的已完成步骤里已经包含当前工具需要的信息，可以直接引用那些结果来补齐参数。
         6. 时间字段必须转换成 ISO 8601，例如 `2026-04-07T20:00:00`。
-        7. 如果缺少必填参数,只输出一个 JSON object: {"_needs_clarification": "..."}。
-           "..." 部分必须用一句完整中文,直接陈述当前步骤缺哪个具体参数,
-           不能含尖括号、不能含占位符、不能复制本规则的任何字面文本。
+        7. 只有用户原话完全没说某个必填参数 (tool 描述里标"可选"的不算必填),
+           才输出 _needs_clarification 字段+一句具体追问. 绝大多数情况直接给 arguments.
         <turn|>
         <|turn>model
 

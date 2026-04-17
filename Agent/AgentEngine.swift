@@ -320,11 +320,21 @@ class AgentEngine {
         let matchedSkillIdsForTurn = requiresMultimodal ? [] : matchedSkillIds(for: normalizedText)
         // 暴露给 CLI harness (ScenarioRunner) 做断言. iOS UI 不读, 0 行为影响.
         self.lastTurnMatchedSkillIds = matchedSkillIdsForTurn
-        // TODO(Step 4): 接入 llm.selectedModel.supportsStructuredPlanning 后 gate Planner 入口
-        let shouldUsePlanner = !requiresMultimodal && matchedSkillIdsForTurn.count >= 2
+        // T2 (2026-04-17): 把 Planner 入口从 matched>=2 降到 matched>=1.
+        //
+        // 动机: Router 的 substring trigger 命中存在大量边界 fail (e.g. 用户说
+        // "评审会"但 trigger 是"会议", 用户说"查王总电话"但 trigger 是"查电话"),
+        // 漏掉一个 skill → planner 没被触发 → 多 skill 任务退化成单 skill agent 路径,
+        // 漏掉的那个 skill 的工具完全不会被调用. 长期最优解不是补 trigger
+        // (rule whack-a-mole), 而是让 Selection LLM 在 matched 不充分时介入决策.
+        //
+        // matched=1 时进入 Planner → Selection LLM 用全 skill 集合判断:
+        //  - 真单 skill: Selection 返回 1, Planner 返回 false, 落回 agent 路径
+        //  - 多 skill 漏匹配: Selection 返回 >=2, 进入正常 plan 流程
+        // 代价: matched=1 真单 skill 场景多一次短 selection LLM call (~0.5-1s).
+        let shouldUsePlanner = !requiresMultimodal && matchedSkillIdsForTurn.count >= 1
         let shouldUseFullAgentPrompt =
             !requiresMultimodal
-            && !shouldUsePlanner
             && shouldUseToolingPrompt(for: normalizedText)
         let activeSkillInfos: [SkillInfo]
         if shouldUseFullAgentPrompt {
@@ -414,48 +424,72 @@ class AgentEngine {
             return
         }
 
-        // Router 确定性匹配到的 skill: 直接预加载 body + 工具列表,
+        // Router 确定性匹配到的 skill: 预加载 tool 调用 schema + 工具白名单,
         // 让模型在 round 1 就看到 schema, 跳过 load_skill 往返。对小模型
         // (E2B/E4B) 效果显著 — 避免它们在"要不要 load_skill"这种主观判断上翻车。
+        //
+        // Path 1-B (2026-04-17): memory-aware degradation.
+        //   - 内存富余 (HARNESS Mac, 真机第一轮): 用完整 SKILL body, 保留所有
+        //     行为细则 (追问逻辑, 跨轮合并, 多 tool 内部路由).
+        //   - 内存吃紧 (真机第 2/3 轮起, headroom < 1500 MB): 退化到 compactSchema,
+        //     ~200 chars/SKILL, 牺牲行为细节换 prefill 内存峰值, 避免 jetsam.
+        //
+        // 不是规则, 是 memory-pressure-aware degradation —— 跟 jetsam 共生的
+        // 工程实践. 阈值 1500 MB 是经验值 (E4B 单次 prefill ~700MB 峰值 + safety).
+        let useCompactSchema = llm.availableHeadroomMB < 1500
+        if useCompactSchema {
+            log("[Agent] preload compact schema (headroom=\(llm.availableHeadroomMB) MB < 1500)")
+        }
         let preloadedSkills: [PromptBuilder.PreloadedSkill] = matchedSkillIdsForTurn.compactMap { id in
             guard let body = skillRegistry.loadBody(skillId: id),
                   let def = skillRegistry.getDefinition(id) else { return nil }
+            let registered = registeredTools(for: id)
+            let toolTuples = registered.map { (name: $0.name, description: $0.description, parameters: $0.parameters, requiredParameters: $0.requiredParameters) }
+            let compact = PromptBuilder.PreloadedSkill.makeCompactSchema(
+                skillName: def.metadata.name,
+                tools: toolTuples
+            )
+            // 当 headroom 充裕, 把 body 同时塞进 compactSchema 字段, prompt 用的就是 body
+            // (零行为变化). 当 headroom 紧, compactSchema 是真紧凑版本, prompt 用紧凑.
             return PromptBuilder.PreloadedSkill(
                 id: id,
                 displayName: def.metadata.name,
                 body: body,
-                allowedTools: def.metadata.allowedTools
+                allowedTools: def.metadata.allowedTools,
+                compactSchema: useCompactSchema ? compact : body
             )
         }
 
-        let prompt: String
-        if shouldUseFullAgentPrompt {
-            prompt = PromptBuilder.build(
-                userMessage: normalizedText,
-                currentImageCount: attachments.count,
-                tools: activeSkillInfos,
-                history: messages,
-                systemPrompt: config.systemPrompt,
-                enableThinking: config.enableThinking,
-                historyDepth: historyDepth,
-                showListSkillsHint: matchedSkillIdsForTurn.isEmpty,
-                preloadedSkills: preloadedSkills
-            )
-        } else {
-            prompt = PromptBuilder.buildLightweightTextPrompt(
-                userMessage: normalizedText,
-                history: messages,
-                systemPrompt: config.systemPrompt,
-                enableThinking: config.enableThinking,
-                historyDepth: shouldUsePlanner ? plannerHistoryDepth : historyDepth
-            )
-        }
-        log("[Agent] text prompt mode=\(shouldUseFullAgentPrompt ? "agent" : "light"), chars=\(prompt.count), skills=\(activeSkillInfos.count)")
+        // T2 (2026-04-17): 当 matched>=1, planner 和 agent 路径同时可能跑.
+        // - Planner 入参用 LIGHT prompt (它内部只取 system block, 大 agent prompt
+        //   会让 plan JSON 翻车 — E4B 在 3.6K char 输入下截断).
+        // - 落回单 skill streaming 用 agent prompt (含 preloaded SKILL body, 能调 tool).
+        let agentPrompt: String? = shouldUseFullAgentPrompt ? PromptBuilder.build(
+            userMessage: normalizedText,
+            currentImageCount: attachments.count,
+            tools: activeSkillInfos,
+            history: messages,
+            systemPrompt: config.systemPrompt,
+            enableThinking: config.enableThinking,
+            historyDepth: historyDepth,
+            showListSkillsHint: matchedSkillIdsForTurn.isEmpty,
+            preloadedSkills: preloadedSkills
+        ) : nil
+        let lightPrompt: String = PromptBuilder.buildLightweightTextPrompt(
+            userMessage: normalizedText,
+            history: messages,
+            systemPrompt: config.systemPrompt,
+            enableThinking: config.enableThinking,
+            historyDepth: shouldUsePlanner ? plannerHistoryDepth : historyDepth
+        )
+        let plannerInputPrompt: String = lightPrompt
+        let streamingPrompt: String = agentPrompt ?? lightPrompt
+        log("[Agent] text prompt mode=\(shouldUseFullAgentPrompt ? "agent" : "light"), planner-input-chars=\(plannerInputPrompt.count), streaming-chars=\(streamingPrompt.count), skills=\(activeSkillInfos.count)")
 
         if shouldUsePlanner {
             log("[Agent] planner path triggered revision=\(plannerRevision)")
             let plannerHandled = await executePlannedSkillChainIfPossible(
-                prompt: prompt,
+                prompt: plannerInputPrompt,
                 userQuestion: normalizedText,
                 images: promptImages
             )
@@ -469,19 +503,10 @@ class AgentEngine {
                 return
             }
 
-            if messages.indices.contains(msgIndex),
-               messages[msgIndex].role == .assistant,
-               messages[msgIndex].content == "▍" {
-                messages.remove(at: msgIndex)
-            }
-            messages.append(
-                ChatMessage(
-                    role: .assistant,
-                    content: "⚠️ 已识别到多个 Skill，但当前无法完成编排。请补充更具体的信息后重试。"
-                )
-            )
-            isProcessing = false
-            return
+            // T2 (2026-04-17): planner 未处理 (Selection LLM 判定真单 skill) →
+            // 不显示错误, 沉默地落回单 skill agent 路径 (placeholder ▍ 还在,
+            // 下面 streaming 代码会填充).
+            log("[Agent] planner not handled, falling back to single-skill agent path")
         }
 
 
@@ -489,7 +514,7 @@ class AgentEngine {
         var buffer = ""
         var bufferFlushed = false
 
-        llm.generateStream(prompt: prompt, images: promptImages, audios: []) { [weak self] token in
+        llm.generateStream(prompt: streamingPrompt, images: promptImages, audios: []) { [weak self] token in
             guard let self = self else { return }
 
             if detectedToolCall {
@@ -527,7 +552,7 @@ class AgentEngine {
                     self.messages[msgIndex].update(content: "")
                     Task {
                         await self.executeToolChain(
-                            prompt: prompt,
+                            prompt: streamingPrompt,
                             fullText: fullText,
                             userQuestion: normalizedText,
                             images: promptImages

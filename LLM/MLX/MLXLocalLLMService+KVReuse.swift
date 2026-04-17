@@ -175,6 +175,23 @@ extension MLXLocalLLMService {
         }
         activeCache = plan.cache
         cachedPromptTokens = plan.fullPromptTokens
+        logKVCacheBytes(plan.cache, promptTokens: targetLen)
+    }
+
+    /// Log KV-cache memory footprint (effective bytes across all layers/arrays).
+    /// Useful for comparing fp16 baseline vs 4/8-bit quantized cache.
+    private func logKVCacheBytes(_ caches: [KVCache], promptTokens: Int) {
+        var totalBytes = 0
+        var quantLayers = 0
+        for cache in caches {
+            if cache is QuantizedKVCacheProtocol { quantLayers += 1 }
+            for arr in cache.state {
+                totalBytes += arr.nbytes
+            }
+        }
+        let kb = totalBytes / 1024
+        let tag = quantLayers > 0 ? "quant=\(quantLayers)/\(caches.count)" : "fp16"
+        print("[MLX] KV cache bytes — \(kb) KB across \(caches.count) layers (\(tag), prompt=\(promptTokens)t)")
     }
 
     /// Drop any cached state. Call on model reload, cancellation, multimodal
